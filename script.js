@@ -13,10 +13,16 @@ window.addEventListener("DOMContentLoaded", () => {
   });
 
   searchInput.addEventListener("input", () => {
-    // ...
+    const query = searchInput.value.trim().toLowerCase();
+    const cards = document.querySelectorAll(".card");
+
+    cards.forEach((card) => {
+      const text = card.textContent.toLowerCase();
+      card.style.display = query === "" || text.includes(query) ? "" : "none";
+    });
   });
 
   sortByPriorityBtn.addEventListener("click", () => {
-    // ...
+    
   });
 });

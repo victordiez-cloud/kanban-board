@@ -35,7 +35,8 @@ h1 {
   margin: 10px 0;
   padding: 10px;
   border-radius: 3px;
-  cursor: grab; /* Indication pour drag & drop (optionnel) */
+  cursor: grab;
+  /* Indication pour drag & drop (optionnel) */
 }
 
 .toolbar {
