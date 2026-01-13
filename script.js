@@ -165,6 +165,6 @@ window.addEventListener("DOMContentLoaded", () => {
         })
         .forEach((card) => column.appendChild(card));
     });
-    
+
   });
 });
