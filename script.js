@@ -6,6 +6,69 @@ window.addEventListener("DOMContentLoaded", () => {
   const addCardBtn = document.getElementById("addCardBtn");
   const searchInput = document.getElementById("searchInput");
   const sortByPriorityBtn = document.getElementById("sortByPriorityBtn");
+  const columns = document.querySelectorAll(".column");
+  const cards = document.querySelectorAll(".card");
+  let draggedCard = null;
+
+  const setCardStatus = (card, column) => {
+    const status = column.dataset.status;
+    if (status) {
+      card.dataset.status = status;
+    } else {
+      delete card.dataset.status;
+    }
+  };
+
+  cards.forEach((card) => {
+    card.setAttribute("draggable", "true");
+
+    const parentColumn = card.closest(".column");
+    if (parentColumn) {
+      setCardStatus(card, parentColumn);
+    }
+
+    card.addEventListener("dragstart", (event) => {
+      draggedCard = card;
+      card.classList.add("dragging");
+      event.dataTransfer.effectAllowed = "move";
+      event.dataTransfer.setData("text/plain", card.dataset.id || "");
+    });
+
+    card.addEventListener("dragend", () => {
+      card.classList.remove("dragging");
+      draggedCard = null;
+    });
+  });
+
+  columns.forEach((column) => {
+    column.addEventListener("dragover", (event) => {
+      event.preventDefault();
+      event.dataTransfer.dropEffect = "move";
+    });
+
+    column.addEventListener("dragenter", (event) => {
+      event.preventDefault();
+      column.classList.add("drag-over");
+    });
+
+    column.addEventListener("dragleave", (event) => {
+      if (!column.contains(event.relatedTarget)) {
+        column.classList.remove("drag-over");
+      }
+    });
+
+    column.addEventListener("drop", (event) => {
+      event.preventDefault();
+      column.classList.remove("drag-over");
+
+      if (!draggedCard) {
+        return;
+      }
+
+      column.appendChild(draggedCard);
+      setCardStatus(draggedCard, column);
+    });
+  });
   const kanban = document.querySelector('.kanban');
 
   function createDeleteButton() {
@@ -40,6 +103,7 @@ window.addEventListener("DOMContentLoaded", () => {
     if (!title) return; // cancel or empty -> do nothing
 
     const content = window.prompt("Contenu de la carte:", "");
+    // allow empty content
 
     // Ask for priority with a small, forgiving prompt; normalize values
     let priority = window.prompt("Priorité (high / medium / low) :", "medium");
@@ -69,6 +133,8 @@ window.addEventListener("DOMContentLoaded", () => {
       todoCol.appendChild(card);
     } else {
       // fallback: append to the kanban container
+      const kanban = document.querySelector('.kanban');
+      kanban.appendChild(card);
       const kanbanContainer = document.querySelector('.kanban');
       if (kanbanContainer) kanbanContainer.appendChild(card);
     }
