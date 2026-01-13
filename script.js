@@ -40,10 +40,6 @@ window.addEventListener("DOMContentLoaded", () => {
     if (!title) return; // cancel or empty -> do nothing
 
     const content = window.prompt("Contenu de la carte:", "");
-<<<<<<< HEAD
-    // allow empty content
-=======
->>>>>>> develop
 
     // Ask for priority with a small, forgiving prompt; normalize values
     let priority = window.prompt("Priorité (high / medium / low) :", "medium");
@@ -65,10 +61,7 @@ window.addEventListener("DOMContentLoaded", () => {
 
     card.appendChild(h3);
     card.appendChild(p);
-<<<<<<< HEAD
-=======
     card.appendChild(createDeleteButton());
->>>>>>> develop
 
     // Append to the To Do column (data-status="todo")
     const todoCol = document.querySelector('.column[data-status="todo"]');
@@ -76,13 +69,8 @@ window.addEventListener("DOMContentLoaded", () => {
       todoCol.appendChild(card);
     } else {
       // fallback: append to the kanban container
-<<<<<<< HEAD
-      const kanban = document.querySelector('.kanban');
-      kanban.appendChild(card);
-=======
       const kanbanContainer = document.querySelector('.kanban');
       if (kanbanContainer) kanbanContainer.appendChild(card);
->>>>>>> develop
     }
   });
 
