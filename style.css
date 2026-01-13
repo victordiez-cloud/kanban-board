@@ -25,6 +25,11 @@ h1 {
   min-height: 300px;
 }
 
+.column.drag-over {
+  outline: 2px dashed #999;
+  background: #f5f5f5;
+}
+
 .column h2 {
   text-align: center;
   margin: 10px 0;
@@ -35,7 +40,16 @@ h1 {
   margin: 10px 0;
   padding: 10px;
   border-radius: 3px;
-  cursor: grab; /* Indication pour drag & drop (optionnel) */
+  cursor: grab;
+  /* Indication pour drag & drop (optionnel) */
+  cursor: grab;
+  /* Indication pour drag & drop (optionnel) */
+  position: relative;
+}
+
+.card.dragging {
+  opacity: 0.6;
+  cursor: grabbing;
 }
 
 .toolbar {
@@ -47,4 +61,51 @@ h1 {
 .toolbar input {
   margin: 5px;
   padding: 5px 10px;
+}
+
+
+/* Bouton de suppression sur les cartes */
+.card .delete-btn {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  background: transparent;
+  border: none;
+  font-size: 18px;
+  line-height: 1;
+  cursor: pointer;
+  color: #666;
+}
+
+.card .delete-btn:hover {
+  color: #e74c3c;
+}
+
+/* Styles de priorité pour les cartes */
+.card[data-priority="high"] {
+  border-left: 6px solid #e74c3c;
+  background: #fff5f4;
+}
+
+.card[data-priority="medium"] {
+  border-left: 6px solid #f1c40f;
+  background: #fffbf0;
+}
+
+.card[data-priority="low"] {
+  border-left: 6px solid #2ecc71;
+  background: #f6fff5;
+}
+
+/* Bouton principal */
+#addCardBtn {
+  background: #0078d4;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+#addCardBtn:hover {
+  background: #005a9e;
 }

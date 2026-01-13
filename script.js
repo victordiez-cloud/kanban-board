@@ -129,38 +129,199 @@ window.addEventListener("DOMContentLoaded", () => {
     saveBoardState();
   });
 
+
   searchInput.addEventListener("input", () => {
     const q = searchInput.value.trim().toLowerCase();
     document.querySelectorAll('.card').forEach(card => {
       const title = (card.querySelector('h3') && card.querySelector('h3').innerText.toLowerCase()) || '';
       card.style.display = title.includes(q) ? '' : 'none';
-    });
-  });
+      const priorityOrder = { high: 0, medium: 1, low: 2 };
+      const columns = document.querySelectorAll(".column");
+      const cards = document.querySelectorAll(".card");
+      let draggedCard = null;
 
-  sortByPriorityBtn.addEventListener("click", () => {
-    const order = { high: 0, medium: 1, low: 2, '': 3 };
-    document.querySelectorAll('.column').forEach(col => {
-      const cards = Array.from(col.querySelectorAll('.card'));
-      cards.sort((a, b) => (order[a.dataset.priority] || 3) - (order[b.dataset.priority] || 3));
-      cards.forEach(c => col.appendChild(c));
-    });
-    saveBoardState();
-  });
+      const setCardStatus = (card, column) => {
+        const status = column.dataset.status;
+        if (status) {
+          card.dataset.status = status;
+        } else {
+          delete card.dataset.status;
+        }
+      }
 
-  // Simple drag/drop pour les colonnes
-  document.querySelectorAll('.column').forEach(col => {
-    col.addEventListener('dragover', (e) => {
-      e.preventDefault();
-      e.dataTransfer.dropEffect = 'move';
-    });
-    col.addEventListener('drop', (e) => {
-      e.preventDefault();
-      const id = e.dataTransfer.getData('text/plain');
-      if (!id) return;
-      const card = document.querySelector(`.card[data-id="${id}"]`);
-      if (!card) return;
-      col.appendChild(card);
-      saveBoardState();
+      cards.forEach((card) => {
+        card.setAttribute("draggable", "true");
+
+        const parentColumn = card.closest(".column");
+        if (parentColumn) {
+          setCardStatus(card, parentColumn);
+        }
+
+        card.addEventListener("dragstart", (event) => {
+          draggedCard = card;
+          card.classList.add("dragging");
+          event.dataTransfer.effectAllowed = "move";
+          event.dataTransfer.setData("text/plain", card.dataset.id || "");
+        });
+
+        card.addEventListener("dragend", () => {
+          card.classList.remove("dragging");
+          draggedCard = null;
+        });
+      });
+
+      columns.forEach((column) => {
+        column.addEventListener("dragover", (event) => {
+          event.preventDefault();
+          event.dataTransfer.dropEffect = "move";
+        });
+
+        column.addEventListener("dragenter", (event) => {
+          event.preventDefault();
+          column.classList.add("drag-over");
+        });
+
+        column.addEventListener("dragleave", (event) => {
+          if (!column.contains(event.relatedTarget)) {
+            column.classList.remove("drag-over");
+          }
+        });
+
+        column.addEventListener("drop", (event) => {
+          event.preventDefault();
+          column.classList.remove("drag-over");
+
+          if (!draggedCard) {
+            return;
+          }
+
+          column.appendChild(draggedCard);
+          setCardStatus(draggedCard, column);
+        });
+      });
+
+      const kanban = document.querySelector('.kanban');
+
+
+      function createDeleteButton() {
+        const btn = document.createElement('button');
+        btn.className = 'delete-btn';
+        btn.type = 'button';
+        btn.title = 'Supprimer la carte';
+        btn.textContent = '×';
+        return btn;
+      }
+
+      // Ensure existing cards have a delete button
+      document.querySelectorAll('.card').forEach(c => {
+        if (!c.querySelector('.delete-btn')) c.appendChild(createDeleteButton());
+      });
+
+      // Delegated handler for delete buttons
+      if (kanban) {
+        kanban.addEventListener('click', (e) => {
+          const btn = e.target.closest('.delete-btn');
+          if (btn) {
+            const card = btn.closest('.card');
+            if (card) card.remove();
+          }
+        });
+      }
+
+      // Éventuellement, on écoute les événements
+      addCardBtn.addEventListener("click", () => {
+        // Simple prompt-based flow (keeps UI minimal and matches current project style)
+        const title = window.prompt("Titre de la carte:", "");
+        if (!title) return; // cancel or empty -> do nothing
+
+        const content = window.prompt("Contenu de la carte:", "");
+        // allow empty content
+
+        // Ask for priority with a small, forgiving prompt; normalize values
+        let priority = window.prompt("Priorité (high / medium / low) :", "medium");
+        if (!priority) priority = "medium";
+        priority = priority.toLowerCase();
+        if (!["high", "medium", "low"].includes(priority)) priority = "medium";
+
+        // Create DOM node for the card
+        const card = document.createElement("div");
+        card.className = "card";
+        // generate a simple unique id
+        card.dataset.id = `c_${Date.now()}_${Math.floor(Math.random() * 1000)}`;
+        card.dataset.priority = priority;
+
+        const h3 = document.createElement("h3");
+        h3.textContent = title;
+        const p = document.createElement("p");
+        p.textContent = content || "";
+
+        card.appendChild(h3);
+        card.appendChild(p);
+        card.appendChild(createDeleteButton());
+
+        // Append to the To Do column (data-status="todo")
+        const todoCol = document.querySelector('.column[data-status="todo"]');
+        if (todoCol) {
+          todoCol.appendChild(card);
+        } else {
+          // fallback: append to the kanban container
+          const kanban = document.querySelector('.kanban');
+          kanban.appendChild(card);
+          const kanbanContainer = document.querySelector('.kanban');
+          if (kanbanContainer) kanbanContainer.appendChild(card);
+        }
+      });
+
+      searchInput.addEventListener("input", () => {
+        const query = searchInput.value.trim().toLowerCase();
+        const cards = document.querySelectorAll(".card");
+
+        cards.forEach((card) => {
+          const text = card.textContent.toLowerCase();
+          card.style.display = query === "" || text.includes(query) ? "" : "none";
+        });
+      });
+
+      sortByPriorityBtn.addEventListener("click", () => {
+        const order = { high: 0, medium: 1, low: 2, '': 3 };
+        document.querySelectorAll('.column').forEach(col => {
+          const cards = Array.from(col.querySelectorAll('.card'));
+          cards.sort((a, b) => (order[a.dataset.priority] || 3) - (order[b.dataset.priority] || 3));
+          cards.forEach(c => col.appendChild(c));
+        });
+        saveBoardState();
+      });
+
+      // Simple drag/drop pour les colonnes
+      document.querySelectorAll('.column').forEach(col => {
+        col.addEventListener('dragover', (e) => {
+          e.preventDefault();
+          e.dataTransfer.dropEffect = 'move';
+        });
+        col.addEventListener('drop', (e) => {
+          e.preventDefault();
+          const id = e.dataTransfer.getData('text/plain');
+          if (!id) return;
+          const card = document.querySelector(`.card[data-id="${id}"]`);
+          if (!card) return;
+          col.appendChild(card);
+          saveBoardState();
+        });
+        const columns = document.querySelectorAll(".column");
+
+        columns.forEach((column) => {
+          const cards = Array.from(column.querySelectorAll(".card"));
+
+          cards
+            .sort((a, b) => {
+              const priorityA = priorityOrder[a.dataset.priority] ?? Number.MAX_SAFE_INTEGER;
+              const priorityB = priorityOrder[b.dataset.priority] ?? Number.MAX_SAFE_INTEGER;
+              return priorityA - priorityB;
+            })
+            .forEach((card) => column.appendChild(card));
+        });
+
+      });
     });
   });
 });
